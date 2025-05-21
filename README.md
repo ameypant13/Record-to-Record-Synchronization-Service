@@ -26,3 +26,8 @@ A robust Golang engine for bi-directional, record-by-record **schema transformat
 
 ```sh
 go get github.com/qri-io/jsonschema
+
+## Run the service
+```sh
+go run main.go
+```

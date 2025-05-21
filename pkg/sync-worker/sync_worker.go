@@ -38,17 +38,6 @@ func (w *SyncWorker) ProcessJob(job SyncJob) SyncResult {
 		}
 	}
 
-	// 2. Mock "external API" call
-	err = MockExternalAPI(out, job.Operation)
-	if err != nil {
-		return SyncResult{
-			JobName:     job.Name,
-			Status:      "api_fail",
-			Transformed: out,
-			Detail:      err.Error(),
-		}
-	}
-
 	return SyncResult{
 		JobName:     job.Name,
 		Status:      "success",

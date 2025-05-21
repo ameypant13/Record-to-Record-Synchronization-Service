@@ -1,11 +1,12 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
+	"github.com/ameypant13/Record-to-Record-Synchronization-Service/pkg/dispatcher"
 	schema_validator "github.com/ameypant13/Record-to-Record-Synchronization-Service/pkg/schema-validator"
 	sync_worker "github.com/ameypant13/Record-to-Record-Synchronization-Service/pkg/sync-worker"
 	"os"
+	"time"
 )
 
 // +go:embed schema/internal.json
@@ -62,21 +63,18 @@ func main() {
 		},
 	}
 
-	// Process all jobs
-	var results []sync_worker.SyncResult
+	// 2 API calls per second, allow burst of 2, queue holds 10
+	dispatch := dispatcher.NewDispatcher(worker, 2, 2, 10)
+
+	// Prepare jobs...
 	for _, job := range jobs {
-		res := worker.ProcessJob(job)
-		results = append(results, res)
-	}
-	// Print result summary
-	fmt.Println("\n--- RESULTS ---")
-	for _, r := range results {
-		fmt.Printf("%s: %s (%s)\n", r.JobName, r.Status, r.Detail)
-		if r.Status == "success" {
-			enc, _ := json.MarshalIndent(r.Transformed, "  ", "  ")
-			fmt.Println("  Output:", string(enc))
+		if err := dispatch.Submit(job); err != nil {
+			fmt.Println("Job queue full or error:", err)
 		}
 	}
+
+	time.Sleep(3 * time.Second) // Wait for jobs to finish
+	dispatch.Shutdown()
 }
 
 func LoadSchema(filename string) ([]byte, error) {
