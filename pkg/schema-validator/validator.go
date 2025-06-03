@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/qri-io/jsonschema"
@@ -47,6 +48,11 @@ var InternalToExternalContactConfig = TransformConfig{
 			ToBool: true,
 		},
 		{
+			SourceField: "ID",
+			TargetField: "salesId",
+			ToInt: true,
+		}, // Example of direct mapping
+		{
 			SourceField: "priority",
 			TargetField: "priorityCode",
 			ValueStringToInt: map[string]int{
@@ -59,8 +65,8 @@ var InternalToExternalContactConfig = TransformConfig{
 
 var ExternalToInternalContactConfig = TransformConfig{
 	FieldMappings: []FieldMapping{
-		{SourceField: "contactId",  TargetField: "id"},
-		{SourceField: "givenName",  TargetField: "first_name"},
+		{SourceField: "contactId", TargetField: "id"},
+		{SourceField: "givenName", TargetField: "first_name"},
 		{SourceField: "familyName", TargetField: "last_name"},
 		{SourceField: "emailAddress", TargetField: "email"},
 		{
@@ -72,11 +78,15 @@ var ExternalToInternalContactConfig = TransformConfig{
 			},
 		},
 		{
-		    SourceField: "priorityCode",
-		    TargetField: "priority",
-		    ValueIntToString: map[int]string{
-		        1: "Low", 2: "Medium", 3: "High",
-		    },
+			SourceField: "salesId",
+			TargetField: "ID",
+		},
+		{
+			SourceField: "priorityCode",
+			TargetField: "priority",
+			ValueIntToString: map[int]string{
+				1: "Low", 2: "Medium", 3: "High",
+			},
 		},
 	},
 }
@@ -90,10 +100,7 @@ func validateAgainstSchema(data map[string]interface{}, schemaBytes []byte) erro
 	if err != nil {
 		return err
 	}
-	var doc interface{}
-	if err := json.Unmarshal(docBytes, &doc); err != nil {
-		return err
-	}
+
 	key_errs, err := rs.ValidateBytes(context.Background(), docBytes)
 	if err != nil {
 		return fmt.Errorf("jsonschema validate failed: %v", err)
@@ -201,6 +208,21 @@ func TransformAndValidate(
 			output[fm.TargetField] = code // _int_ value!
 			continue
 		}
+
+		if fm.ToInt {
+			str, ok := rawVal.(string)
+			if !ok {
+				return nil, fmt.Errorf("failed to convert to string")
+			}
+			value, err := strconv.Atoi(str)
+			if err != nil {
+				return nil, err
+			}
+			fmt.Println(value)
+			output[fm.TargetField] = value
+			continue
+		}
+
 
 		// Int → String enum
 		if fm.ValueIntToString != nil {

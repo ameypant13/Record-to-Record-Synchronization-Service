@@ -8,6 +8,7 @@
     "familyName": { "type": "string" },
     "emailAddress": { "type": "string", "format": "email" },
     "isActive": { "type": "boolean" },
+    "salesID": {"type": "number"},
     "priorityCode": {
       "type": "integer",
       "enum": [ 1, 2, 3 ],

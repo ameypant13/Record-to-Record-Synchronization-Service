@@ -32,6 +32,7 @@ func main() {
 			Record: map[string]interface{}{
 				"id": "abc1", "first_name": "Alice", "last_name": "Doe",
 				"email": "alice@example.com", "status": "Active", "priority": "High",
+				"ID": "1234",
 			},
 			SourceSchema:  internalContactSchema,
 			DestSchema:    externalContactSchema,

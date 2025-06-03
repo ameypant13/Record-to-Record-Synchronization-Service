@@ -7,6 +7,7 @@
     "first_name": { "type": "string" },
     "last_name": { "type": "string" },
     "email": { "type": "string", "format": "email" },
+    "ID": {"type": "string"},
     "status": {
       "type": "string",
       "enum": [ "Active", "Inactive" ]
